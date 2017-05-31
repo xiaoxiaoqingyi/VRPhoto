@@ -59,7 +59,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     long up_time = 0;
     private int curRate = 80;
     private float tempValue = 0;
-    private boolean isPortrait = true;
 
 
     private int[] imgArray = {
@@ -79,17 +78,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onCreate(Bundle savedInstanceState) {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        if("portrait".equals(getIntent().getStringExtra("orientation"))){
-            isPortrait = true;
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);       //强制为竖屏
-        }else {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE); //强制为横屏
-            isPortrait = false;
-        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
-
 
     }
 
@@ -125,8 +116,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onDestroy();
     }
 
-
-
     @Override
     public void onSensorChanged(SensorEvent event) {
 //        Log.i("Sensor", " x=" + event.values[0] + " y=" + event.values[1] + " z=" + event.values[2]+ " w=" + event.values[3]);
@@ -146,44 +135,31 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             QBC[2] = QAC[0]*QBA[2] - QAC[1]*QBA[3] + QAC[2]*QBA[0] +QAC[3]*QBA[1];
             QBC[3] = QAC[0]*QBA[3] + QAC[1]*QBA[2] - QAC[2]*QBA[1] +QAC[3]*QBA[0];
 
+            //偏向Z轴的位移
             double z = Math.atan2(2*QBC[1]*QBC[2] - 2*QBC[0]*QBC[3]
                     , 2*QBC[0]*QBC[0] + 2*QBC[1]*QBC[1]-1);
+            //偏向X轴的位移
             double x = -Math.asin(2*QBC[1]*QBC[3] + 2*QBC[0]*QBC[2]);
-
+            //偏向Y轴的位移
             double y = Math.atan2(2*QBC[2]*QBC[3] - 2*QBC[0]*QBC[1]
                     , 2*QBC[0]*QBC[0] + 2*QBC[3]*QBC[3]-1);
-
 
             java.text.DecimalFormat   df   =new   java.text.DecimalFormat("#0.000");
             Log.i("Sensor","z=" +  df.format(z) + " x=" + df.format(x)  + " y=" +df.format(y) );
 
-
-            if(isPortrait){
-                int distance = (int)Math.round(x / 0.02);
-                curFrame = curFrame - distance;
-                if(curFrame <= 0){
-                    curFrame = 0;
-                }else if(curFrame >= imgArray.length-1){
-                    curFrame = imgArray.length - 1;
-                }
-                mHandler.sendEmptyMessage(curFrame);
-                if(distance != 0){
-                    lastQ = QAC;
-                }
-            }else{
-                int distance = (int)Math.round(y / 0.02);
-                curFrame = curFrame - distance;
-                if(curFrame <= 0){
-                    curFrame = 0;
-                }else if(curFrame >= imgArray.length-1){
-                    curFrame = imgArray.length - 1;
-                }
-                mHandler.sendEmptyMessage(curFrame);
-                if(distance != 0){
-                    lastQ = QAC;
-                }
+            int distance = (int)Math.round(y / 0.02);
+            curFrame = curFrame - distance;
+            if(curFrame <= 0){
+                curFrame = 0;
+            }else if(curFrame >= imgArray.length-1){
+                curFrame = imgArray.length - 1;
             }
-        }else {
+            mHandler.sendEmptyMessage(curFrame);
+            if(distance != 0){
+                lastQ = QAC;
+            }
+
+        } else {
             num++;
             lastQ = QAC;
         }
@@ -298,24 +274,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             Log.i("ACTION","curFrame="+ msg.what);
-//            if(msg.what == FINISH_FRAME){
-//                mProgressBar.setVisibility(View.GONE);
-//                return;
-//            }
-//
-//            long dd = System.currentTimeMillis();
-//            Log.i("ACTION","time="+(dd - timerdd)+"  curFrame="+msg.what);
-//            timerdd = dd;
-//            if(mMemoryCache != null && mMemoryCache.get(msg.what) != null){
-//                img.setImageBitmap(mMemoryCache.get(msg.what));
-//            }else if(fileLists.size() > msg.what){
-//                //此时，bitmap 还没加载到缓存，或超过了缓存的临界值
-//                Bitmap bitmap = BitmapUtils.getBitmapFromFilePath(fileLists.get(msg.what), Utils.getDisplayWidth(MainActivity.this) / 2,
-//                        Utils.getDisplayWHHeigth(MainActivity.this) /2);
-//                if(bitmap != null){
-//                    img.setImageBitmap(bitmap);
-//                }
-//            }
+
             if(msg.what >= 0 && msg.what < imgArray.length){
                 img.setImageResource(imgArray[msg.what]);
             }
