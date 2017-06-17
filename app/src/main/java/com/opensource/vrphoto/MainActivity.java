@@ -7,6 +7,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
@@ -22,8 +23,11 @@ import android.widget.ProgressBar;
 
 import com.opensource.vrphoto.utils.BitmapUtils;
 import com.opensource.vrphoto.utils.Utils;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
 
 import java.io.File;
+import java.net.URI;
 import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
@@ -102,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onResume() {
         super.onResume();
-        mSensorManager.registerListener(this, mSensor, SensorManager.SENSOR_DELAY_GAME);
+        mSensorManager.registerListener(this, mSensor, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     @Override
@@ -119,6 +123,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent event) {
 //        Log.i("Sensor", " x=" + event.values[0] + " y=" + event.values[1] + " z=" + event.values[2]+ " w=" + event.values[3]);
+
+        //Android 已经提供 Sensor.TYPE_POSE_6DOF 传感器监听，直接给出四元数的值，详细请查看：
+        //https://developer.android.google.cn/reference/android/hardware/SensorEvent.html#values
+        //但是有些版本过低，还获取不到，所以我还是采用 Sensor.TYPE_ROTATION_VECTOR 监听，然后再转换成四元数
+
         float[] QAC = new float[4];
         Utils.getQuaternionFromVector(QAC, event.values);
 
@@ -154,8 +163,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }else if(curFrame >= imgArray.length-1){
                 curFrame = imgArray.length - 1;
             }
-            mHandler.sendEmptyMessage(curFrame);
+
             if(distance != 0){
+                mHandler.sendEmptyMessage(curFrame);
                 lastQ = QAC;
             }
 
@@ -271,12 +281,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     Handler mHandler = new Handler(){
         @Override
-        public void handleMessage(Message msg) {
+        public void handleMessage(final Message msg) {
             super.handleMessage(msg);
             Log.i("ACTION","curFrame="+ msg.what);
 
             if(msg.what >= 0 && msg.what < imgArray.length){
                 img.setImageResource(imgArray[msg.what]);
+
             }
         }
     };
