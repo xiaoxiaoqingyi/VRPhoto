@@ -1,34 +1,21 @@
 package com.opensource.vrphoto;
 
 import android.content.Context;
-import android.content.pm.ActivityInfo;
-import android.graphics.Bitmap;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.net.Uri;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.LruCache;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 
-import com.opensource.vrphoto.utils.BitmapUtils;
 import com.opensource.vrphoto.utils.Utils;
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
 
-import java.io.File;
-import java.net.URI;
-import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
